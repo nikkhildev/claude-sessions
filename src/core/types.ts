@@ -43,6 +43,7 @@ export interface SessionMessage {
 export interface SessionMetadataFile {
   version: 1;
   sessions: Record<string, SessionMetadataEntry>;
+  projects?: Record<string, ProjectEntry>;
 }
 
 export interface SessionMetadataEntry {
@@ -50,6 +51,12 @@ export interface SessionMetadataEntry {
   name?: string;
   archived?: boolean;
   notes?: string;
+}
+
+export interface ProjectEntry {
+  description?: string;
+  sessions: string[];
+  created: string;
 }
 
 export interface AppConfig {
@@ -62,6 +69,7 @@ export interface AppConfig {
 
 export interface ListOptions {
   project?: string;
+  projectName?: string;
   all?: boolean;
   limit: number;
   sort: 'date' | 'messages' | 'branch';

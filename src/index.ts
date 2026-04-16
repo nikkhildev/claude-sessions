@@ -5,6 +5,14 @@ import { showCommand } from './commands/show.js';
 import { openCommand } from './commands/open.js';
 import { tagCommand } from './commands/tag.js';
 import { browseCommand } from './commands/browse.js';
+import {
+  projectCreateCommand,
+  projectListCommand,
+  projectAddCommand,
+  projectRemoveCommand,
+  projectDeleteCommand,
+  projectShowCommand,
+} from './commands/project.js';
 
 const program = new Command();
 
@@ -18,6 +26,7 @@ program
   .alias('ls')
   .description('List sessions with metadata')
   .option('-p, --project <path>', 'Filter to specific project directory')
+  .option('-P, --project-name <name>', 'Filter to a named project')
   .option('-a, --all', 'Show sessions from all projects')
   .option('-l, --limit <n>', 'Number of results', '20')
   .option('-s, --sort <field>', 'Sort by: date, messages, branch', 'date')
@@ -28,6 +37,7 @@ program
   .action((opts) => {
     listCommand({
       project: opts.project,
+      projectName: opts.projectName,
       all: opts.all,
       limit: parseInt(opts.limit, 10),
       sort: opts.sort,
@@ -94,9 +104,65 @@ program
   .command('browse')
   .description('Interactive TUI browser for sessions')
   .option('-p, --project <path>', 'Filter to specific project directory')
+  .option('-P, --project-name <name>', 'Filter to a named project')
   .option('-a, --all', 'Show sessions from all projects')
   .action((opts) => {
-    browseCommand({ project: opts.project, all: opts.all });
+    browseCommand({
+      project: opts.project,
+      projectName: opts.projectName,
+      all: opts.all,
+    });
+  });
+
+// --- Project management ---
+const projectCmd = program
+  .command('project')
+  .description('Manage named projects (group sessions like Claude.ai folders)');
+
+projectCmd
+  .command('create <name>')
+  .description('Create a new project')
+  .option('-d, --description <text>', 'Project description')
+  .action((name, opts) => {
+    projectCreateCommand(name, { description: opts.description });
+  });
+
+projectCmd
+  .command('list')
+  .alias('ls')
+  .description('List all projects')
+  .option('--json', 'Output as JSON')
+  .action((opts) => {
+    projectListCommand({ json: opts.json });
+  });
+
+projectCmd
+  .command('show <name>')
+  .description('Show project details and its sessions')
+  .option('--json', 'Output as JSON')
+  .action((name, opts) => {
+    projectShowCommand(name, { json: opts.json });
+  });
+
+projectCmd
+  .command('add <project-name> <sessions...>')
+  .description('Add sessions to a project')
+  .action((projectName, sessions) => {
+    projectAddCommand(projectName, sessions);
+  });
+
+projectCmd
+  .command('remove <project-name> <sessions...>')
+  .description('Remove sessions from a project')
+  .action((projectName, sessions) => {
+    projectRemoveCommand(projectName, sessions);
+  });
+
+projectCmd
+  .command('delete <name>')
+  .description('Delete a project (sessions are not affected)')
+  .action((name) => {
+    projectDeleteCommand(name);
   });
 
 program.parse();

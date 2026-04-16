@@ -4,6 +4,7 @@ import {
   loadAllSessions,
   findProjectDir,
 } from '../core/sessionReader.js';
+import { getProjectSessionIds } from '../core/metadataStore.js';
 import { formatRelativeDate, truncate } from '../utils/format.js';
 import type { Session, ListOptions } from '../core/types.js';
 
@@ -24,6 +25,11 @@ function parseSinceDate(since: string): Date | null {
 
 function filterSessions(sessions: Session[], opts: ListOptions): Session[] {
   let filtered = sessions.filter((s) => !s.archived);
+
+  if (opts.projectName) {
+    const projectIds = new Set(getProjectSessionIds(opts.projectName));
+    filtered = filtered.filter((s) => projectIds.has(s.id));
+  }
 
   if (opts.branch) {
     const branch = opts.branch.toLowerCase();

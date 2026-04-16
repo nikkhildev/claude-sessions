@@ -1,7 +1,11 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { SessionMetadataFile, SessionMetadataEntry } from './types.js';
+import type {
+  SessionMetadataFile,
+  SessionMetadataEntry,
+  ProjectEntry,
+} from './types.js';
 
 function getDataDir(): string {
   return process.env.CLAUDE_SESSIONS_DATA_DIR || join(homedir(), '.claude-sessions');
@@ -61,4 +65,78 @@ export function setSessionName(sessionId: string, name: string): void {
   }
   metadata.sessions[sessionId].name = name;
   saveMetadata(metadata);
+}
+
+// --- Project CRUD ---
+
+export function createProject(
+  name: string,
+  description?: string,
+): ProjectEntry {
+  const metadata = loadMetadata();
+  if (!metadata.projects) metadata.projects = {};
+  if (metadata.projects[name]) {
+    throw new Error(`Project "${name}" already exists`);
+  }
+  const entry: ProjectEntry = {
+    sessions: [],
+    created: new Date().toISOString(),
+    ...(description ? { description } : {}),
+  };
+  metadata.projects[name] = entry;
+  saveMetadata(metadata);
+  return entry;
+}
+
+export function listProjects(): Record<string, ProjectEntry> {
+  const metadata = loadMetadata();
+  return metadata.projects || {};
+}
+
+export function getProject(name: string): ProjectEntry | null {
+  const metadata = loadMetadata();
+  return metadata.projects?.[name] || null;
+}
+
+export function addSessionsToProject(
+  projectName: string,
+  sessionIds: string[],
+): void {
+  const metadata = loadMetadata();
+  if (!metadata.projects?.[projectName]) {
+    throw new Error(`Project "${projectName}" not found`);
+  }
+  const existing = metadata.projects[projectName].sessions;
+  metadata.projects[projectName].sessions = [
+    ...new Set([...existing, ...sessionIds]),
+  ];
+  saveMetadata(metadata);
+}
+
+export function removeSessionsFromProject(
+  projectName: string,
+  sessionIds: string[],
+): void {
+  const metadata = loadMetadata();
+  if (!metadata.projects?.[projectName]) {
+    throw new Error(`Project "${projectName}" not found`);
+  }
+  metadata.projects[projectName].sessions = metadata.projects[
+    projectName
+  ].sessions.filter((id) => !sessionIds.includes(id));
+  saveMetadata(metadata);
+}
+
+export function deleteProject(name: string): void {
+  const metadata = loadMetadata();
+  if (!metadata.projects?.[name]) {
+    throw new Error(`Project "${name}" not found`);
+  }
+  delete metadata.projects[name];
+  saveMetadata(metadata);
+}
+
+export function getProjectSessionIds(projectName: string): string[] {
+  const metadata = loadMetadata();
+  return metadata.projects?.[projectName]?.sessions || [];
 }

@@ -6,7 +6,7 @@ import {
   loadAllSessions,
   findProjectDir,
 } from '../core/sessionReader.js';
-import { addTags } from '../core/metadataStore.js';
+import { addTags, getProjectSessionIds } from '../core/metadataStore.js';
 import { loadConfig } from '../utils/config.js';
 import { createSessionList, updateListItems } from './sessionList.js';
 import { createPreview, updatePreview } from './preview.js';
@@ -14,6 +14,7 @@ import { createSearchBar, createStatusBar } from './statusBar.js';
 
 export function launchTui(opts: {
   project?: string;
+  projectName?: string;
   all?: boolean;
 }): void {
   let projectDirs: string[] | undefined;
@@ -26,9 +27,15 @@ export function launchTui(opts: {
     if (dir) projectDirs = [dir];
   }
 
-  const allSessions = loadAllSessions(projectDirs)
+  let allSessions = loadAllSessions(projectDirs)
     .filter((s) => !s.archived)
     .sort((a, b) => b.modified.getTime() - a.modified.getTime());
+
+  // Filter to named project if specified
+  if (opts.projectName) {
+    const projectIds = new Set(getProjectSessionIds(opts.projectName));
+    allSessions = allSessions.filter((s) => projectIds.has(s.id));
+  }
 
   let filteredSessions = [...allSessions];
   let sortMode: 'date' | 'messages' | 'branch' = 'date';
