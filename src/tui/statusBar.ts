@@ -5,19 +5,20 @@ export function createSearchBar(
 ): blessed.Widgets.TextboxElement {
   return blessed.textbox({
     parent,
-    label: ' Search ',
+    label: ' {cyan-fg}{bold}/ Search{/bold}{/cyan-fg} ',
     top: 0,
     left: 0,
     width: '100%',
     height: 3,
     border: { type: 'line' },
     style: {
-      border: { fg: 'gray' },
-      label: { fg: 'white', bold: true },
-      focus: { border: { fg: 'blue' } },
+      border: { fg: 'cyan' },
+      label: { fg: 'cyan', bold: true },
+      focus: { border: { fg: 'green' } },
     },
     inputOnFocus: true,
-  });
+    tags: true,
+  } as blessed.Widgets.TextboxOptions);
 }
 
 export function createStatusBar(
@@ -32,9 +33,10 @@ export function createStatusBar(
     height: 3,
     border: { type: 'line' },
     style: {
-      border: { fg: 'gray' },
+      border: { fg: '#555555' },
+      fg: 'white',
     },
     tags: true,
-    content: ` {bold}↑↓{/bold} Navigate  {bold}Enter{/bold} Open  {bold}/{/bold} Search  {bold}t{/bold} Tag  {bold}s{/bold} Sort  {bold}?{/bold} Help  {bold}q{/bold} Quit  |  ${totalSessions} sessions`,
+    content: ` {cyan-fg}{bold}?{/bold}{/cyan-fg} Help  |  ${totalSessions} sessions`,
   });
 }
