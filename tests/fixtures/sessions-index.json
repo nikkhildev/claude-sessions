@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "sessionId": "abc12345-1111-2222-3333-444444444444",
+      "fullPath": "/tmp/test-claude/projects/test-project/abc12345-1111-2222-3333-444444444444.jsonl",
+      "fileMtime": 1710000000000,
+      "firstPrompt": "fix the login bug in auth module",
+      "summary": "Fix Login Authentication Bug",
+      "messageCount": 24,
+      "created": "2026-03-10T10:00:00.000Z",
+      "modified": "2026-03-10T11:30:00.000Z",
+      "gitBranch": "fix/login-auth-bug",
+      "projectPath": "/home/user/my-project",
+      "isSidechain": false
+    },
+    {
+      "sessionId": "def45678-5555-6666-7777-888888888888",
+      "fullPath": "/tmp/test-claude/projects/test-project/def45678-5555-6666-7777-888888888888.jsonl",
+      "fileMtime": 1710100000000,
+      "firstPrompt": "add rate limiting to the API endpoints",
+      "summary": "Add API Rate Limiting",
+      "messageCount": 45,
+      "created": "2026-03-12T14:00:00.000Z",
+      "modified": "2026-03-12T16:00:00.000Z",
+      "gitBranch": "feature/rate-limiting",
+      "projectPath": "/home/user/my-project",
+      "isSidechain": false
+    },
+    {
+      "sessionId": "ghi78901-9999-0000-1111-222222222222",
+      "fullPath": "/tmp/test-claude/projects/test-project/ghi78901-9999-0000-1111-222222222222.jsonl",
+      "fileMtime": 1710200000000,
+      "firstPrompt": "refactor the database schema",
+      "summary": "Database Schema Refactoring",
+      "messageCount": 12,
+      "created": "2026-03-14T09:00:00.000Z",
+      "modified": "2026-03-14T09:45:00.000Z",
+      "gitBranch": "refactor/db-schema",
+      "projectPath": "/home/user/other-project",
+      "isSidechain": false
+    }
+  ]
+}
