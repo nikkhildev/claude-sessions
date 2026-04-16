@@ -4,6 +4,7 @@ import { searchCommand } from './commands/search.js';
 import { showCommand } from './commands/show.js';
 import { openCommand } from './commands/open.js';
 import { tagCommand } from './commands/tag.js';
+import { browseCommand } from './commands/browse.js';
 
 const program = new Command();
 
@@ -87,6 +88,15 @@ program
   .description('Remove tags from a session')
   .action((session, tags) => {
     tagCommand(session, tags, { remove: true });
+  });
+
+program
+  .command('browse')
+  .description('Interactive TUI browser for sessions')
+  .option('-p, --project <path>', 'Filter to specific project directory')
+  .option('-a, --all', 'Show sessions from all projects')
+  .action((opts) => {
+    browseCommand({ project: opts.project, all: opts.all });
   });
 
 program.parse();
