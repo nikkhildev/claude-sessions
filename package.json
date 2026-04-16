@@ -1,0 +1,54 @@
+{
+  "name": "claude-sessions",
+  "version": "0.1.0",
+  "description": "CLI tool for managing and browsing Claude Code conversations",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "claude-sessions": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "sessions",
+    "cli",
+    "terminal",
+    "conversation",
+    "manager"
+  ],
+  "author": "Nikhil Limbad",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nikkhildev/claude-sessions.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "dayjs": "^1.11.20",
+    "fuse.js": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.27",
+    "@types/node": "^25.6.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}
