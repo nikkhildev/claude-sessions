@@ -78,10 +78,11 @@ export function launchTui(opts: {
 
   function updateStatusBar(): void {
     const projectLabel = activeProjectName
-      ? `{cyan-fg}[${activeProjectName}]{/cyan-fg}  `
+      ? `{#00d4aa-fg}📁 ${activeProjectName}{/#00d4aa-fg}  {#444444-fg}│{/#444444-fg}  `
       : '';
+    const sortLabel = sortMode === 'date' ? '📅' : sortMode === 'messages' ? '💬' : '⎇';
     statusBar.setContent(
-      ` ${projectLabel}{bold}↑↓{/bold} Nav  {bold}Enter{/bold} Open  {bold}/{/bold} Search  {bold}t{/bold} Tag  {bold}T{/bold} Untag  {bold}p{/bold} Projects  {bold}a{/bold} Add to project  {bold}s{/bold} Sort  {bold}?{/bold} Help  {bold}q{/bold} Quit  |  ${filteredSessions.length}/${baseSessions.length}`,
+      ` ${projectLabel}{#888888-fg}${sortLabel} ${sortMode}{/#888888-fg}  {#444444-fg}│{/#444444-fg}  {#888888-fg}${filteredSessions.length}/${baseSessions.length} sessions{/#888888-fg}  {#444444-fg}│{/#444444-fg}  {#00d4aa-fg}?{/#00d4aa-fg} {#666666-fg}help{/#666666-fg}`,
     );
   }
 
@@ -158,8 +159,10 @@ export function launchTui(opts: {
       height: 3,
       border: { type: 'line' },
       style: {
-        border: { fg: 'blue' },
-        focus: { border: { fg: 'green' } },
+        border: { fg: '#00d4aa' },
+        label: { fg: '#00d4aa' },
+        focus: { border: { fg: '#00d4aa' } },
+        fg: 'white',
       },
       inputOnFocus: true,
     });
@@ -194,10 +197,10 @@ export function launchTui(opts: {
       height: Math.min(items.length + 4, 20),
       border: { type: 'line' },
       style: {
-        border: { fg: 'blue' },
-        selected: { bg: 'blue', fg: 'white' },
-        item: { fg: 'white' },
-        label: { fg: 'white', bold: true },
+        border: { fg: '#00d4aa' },
+        selected: { bg: '#1a3a4a', fg: 'white', bold: true },
+        item: { fg: '#cccccc' },
+        label: { fg: '#00d4aa', bold: true },
       },
       keys: true,
       vi: true,
@@ -310,27 +313,27 @@ export function launchTui(opts: {
     const projects = listProjects();
     const projectNames = Object.keys(projects);
     const menuItems = [
-      '{green-fg}+ New Project{/green-fg}',
-      '{yellow-fg}All Sessions (clear filter){/yellow-fg}',
+      '  ✚  New Project',
+      '  ◎  All Sessions (clear filter)',
       ...projectNames.map(
         (name) =>
-          `${name} (${projects[name].sessions.length} sessions)`,
+          `  📁  ${name} (${projects[name].sessions.length} sessions)`,
       ),
     ];
 
     const popup = blessed.list({
       parent: screen,
-      label: ' Projects — Select to filter ',
+      label: ' 📁 Projects ',
       top: 'center',
       left: 'center',
       width: 55,
       height: Math.min(menuItems.length + 4, 20),
       border: { type: 'line' },
       style: {
-        border: { fg: 'blue' },
-        selected: { bg: 'blue', fg: 'white' },
-        item: { fg: 'white' },
-        label: { fg: 'cyan', bold: true },
+        border: { fg: '#00d4aa' },
+        selected: { bg: '#1a3a4a', fg: 'white', bold: true },
+        item: { fg: '#cccccc' },
+        label: { fg: '#00d4aa', bold: true },
       },
       keys: true,
       vi: true,
@@ -405,24 +408,24 @@ export function launchTui(opts: {
     const items = projectNames.map((name) => {
       const isIn = projects[name].sessions.includes(session.id);
       return isIn
-        ? `${name} {green-fg}(already added){/green-fg}`
-        : name;
+        ? `  📁  ${name}  {#00d4aa-fg}✓{/#00d4aa-fg}`
+        : `  📁  ${name}`;
     });
-    items.push('{green-fg}+ New Project{/green-fg}');
+    items.push('  ✚  New Project');
 
     const popup = blessed.list({
       parent: screen,
-      label: ` Add "${session.id.slice(0, 8)}" to project `,
+      label: ` Add to project `,
       top: 'center',
       left: 'center',
       width: 55,
       height: Math.min(items.length + 4, 20),
       border: { type: 'line' },
       style: {
-        border: { fg: 'blue' },
-        selected: { bg: 'blue', fg: 'white' },
-        item: { fg: 'white' },
-        label: { fg: 'cyan', bold: true },
+        border: { fg: '#00d4aa' },
+        selected: { bg: '#1a3a4a', fg: 'white', bold: true },
+        item: { fg: '#cccccc' },
+        label: { fg: '#00d4aa', bold: true },
       },
       keys: true,
       vi: true,
@@ -477,36 +480,37 @@ export function launchTui(opts: {
   screen.key('?', () => {
     const help = blessed.box({
       parent: screen,
-      label: ' Help ',
+      label: ' {bold}⌨ Keyboard Shortcuts{/bold} ',
       top: 'center',
       left: 'center',
       width: 58,
-      height: 22,
+      height: 24,
       border: { type: 'line' },
-      style: { border: { fg: 'blue' } },
+      style: {
+        border: { fg: '#00d4aa' },
+        label: { fg: '#00d4aa' },
+      },
       tags: true,
       content: [
         '',
-        '  {bold}{underline}Navigation{/underline}{/bold}',
-        '  {bold}↑/↓ or j/k{/bold}   Navigate sessions',
-        '  {bold}Enter{/bold}         Open session in Claude Code',
-        '  {bold}/{/bold}             Search sessions',
-        '  {bold}s{/bold}             Toggle sort (date/msgs/branch)',
+        '  {#00d4aa-fg}{bold}Navigation{/bold}{/#00d4aa-fg}',
+        '  {bold}↑ ↓{/bold}  or  {bold}j k{/bold}     Navigate sessions',
+        '  {bold}Enter{/bold}              Open in Claude Code',
+        '  {bold}/{/bold}                  Search / filter',
+        '  {bold}s{/bold}                  Cycle sort  📅 💬 ⎇',
         '',
-        '  {bold}{underline}Tags{/underline}{/bold}',
-        '  {bold}t{/bold}             Add tags to selected session',
-        '  {bold}T{/bold} (shift)     Remove a tag from selected session',
+        '  {#00d4aa-fg}{bold}Organize{/bold}{/#00d4aa-fg}',
+        '  {bold}t{/bold}                  Add tags',
+        '  {bold}T{/bold}  (shift)         Remove a tag',
+        '  {bold}p{/bold}                  📁 Project menu',
+        '  {bold}a{/bold}                  Add session to project',
+        '  {bold}r{/bold}                  Remove from project',
         '',
-        '  {bold}{underline}Projects{/underline}{/bold}',
-        '  {bold}p{/bold}             Project menu (create/switch/clear)',
-        '  {bold}a{/bold}             Add selected session to a project',
-        '  {bold}r{/bold}             Remove session from active project',
+        '  {#00d4aa-fg}{bold}General{/bold}{/#00d4aa-fg}',
+        '  {bold}?{/bold}                  This help',
+        '  {bold}q{/bold}  or  {bold}Ctrl-C{/bold}     Quit',
         '',
-        '  {bold}{underline}General{/underline}{/bold}',
-        '  {bold}?{/bold}             Show this help',
-        '  {bold}q or Ctrl-C{/bold}   Quit',
-        '',
-        '  Press any key to close',
+        '  {#555555-fg}Press any key to close{/#555555-fg}',
       ].join('\n'),
     });
 

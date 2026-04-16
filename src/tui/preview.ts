@@ -1,7 +1,12 @@
 import blessed from 'blessed';
 import type { Session } from '../core/types.js';
 import { readSessionMessages } from '../core/sessionReader.js';
-import { formatDate, truncate, stripSystemTags } from '../utils/format.js';
+import {
+  formatDate,
+  truncate,
+  stripSystemTags,
+  cleanSessionTitle,
+} from '../utils/format.js';
 
 export function createPreview(
   parent: blessed.Widgets.Screen,
@@ -15,21 +20,21 @@ export function createPreview(
     bottom: 3,
     border: { type: 'line' },
     style: {
-      border: { fg: 'cyan' },
-      label: { fg: 'cyan', bold: true },
+      border: { fg: '#444444' },
+      label: { fg: '#00d4aa', bold: true },
     },
     scrollable: true,
     alwaysScroll: true,
     scrollbar: {
-      ch: '│',
-      track: { bg: '#333333' },
-      style: { bg: 'cyan' },
+      ch: '▐',
+      track: { bg: '#222222' },
+      style: { bg: '#00d4aa' },
     },
     mouse: true,
     keys: true,
     vi: true,
     tags: true,
-    content: '{gray-fg}Select a session to preview{/gray-fg}',
+    content: '\n  {#666666-fg}← Select a session to preview{/#666666-fg}',
   });
 }
 
@@ -37,38 +42,55 @@ export function updatePreview(
   box: blessed.Widgets.BoxElement,
   session: Session,
 ): void {
-  const messages = readSessionMessages(session.jsonlPath, 15);
+  const messages = readSessionMessages(session.jsonlPath, 20);
+  const title = cleanSessionTitle(session);
 
   let content = '';
 
-  // Header
-  const title = session.summary || truncate(session.firstPrompt, 55);
-  content += `{bold}{white-fg}${title}{/white-fg}{/bold}\n\n`;
-  content += `{cyan-fg}Branch:{/cyan-fg}   {blue-fg}${session.branch}{/blue-fg}\n`;
-  content += `{cyan-fg}Created:{/cyan-fg}  {gray-fg}${formatDate(session.created.toISOString())}{/gray-fg}\n`;
-  content += `{cyan-fg}Messages:{/cyan-fg} {white-fg}${session.messageCount}{/white-fg}\n`;
-  content += `{cyan-fg}ID:{/cyan-fg}       {gray-fg}${session.id}{/gray-fg}\n`;
+  // ── Header ──
+  content += `\n  {bold}{white-fg}${title}{/white-fg}{/bold}\n\n`;
+  content += `  {#00d4aa-fg}⎇{/#00d4aa-fg}  {#5588cc-fg}${session.branch}{/#5588cc-fg}\n`;
+  content += `  {#00d4aa-fg}📅{/#00d4aa-fg} {#888888-fg}${formatDate(session.created.toISOString())}{/#888888-fg}\n`;
+  content += `  {#00d4aa-fg}💬{/#00d4aa-fg} {white-fg}${session.messageCount} messages{/white-fg}\n`;
+  content += `  {#00d4aa-fg}🔑{/#00d4aa-fg} {#555555-fg}${session.id.slice(0, 8)}...{/#555555-fg}\n`;
+
   if (session.tags.length > 0) {
-    content += `{cyan-fg}Tags:{/cyan-fg}     {cyan-fg}${session.tags.join(', ')}{/cyan-fg}\n`;
+    const tagStr = session.tags
+      .map((t) => `{#00d4aa-fg}#${t}{/#00d4aa-fg}`)
+      .join('  ');
+    content += `  {#00d4aa-fg}🏷{/#00d4aa-fg}  ${tagStr}\n`;
   }
 
-  // Divider
-  content += '\n{gray-fg}────────────────────────────────────────{/gray-fg}\n\n';
+  // ── Divider ──
+  content +=
+    '\n  {#333333-fg}─────────────────────────────────────────{/#333333-fg}\n';
 
-  // Messages
-  for (const msg of messages) {
-    const role =
-      msg.type === 'user'
-        ? '{green-fg}{bold}▶ User{/bold}{/green-fg}'
-        : '{blue-fg}{bold}◀ Claude{/bold}{/blue-fg}';
-    const text = stripSystemTags(msg.content);
-    const display = truncate(text, 300);
-    content += `${role}\n{white-fg}${display}{/white-fg}\n\n`;
+  // ── Messages ──
+  if (messages.length === 0) {
+    content +=
+      '\n  {#666666-fg}No messages found in session file{/#666666-fg}\n';
+  } else {
+    for (const msg of messages) {
+      const isUser = msg.type === 'user';
+      const icon = isUser ? '▸' : '◂';
+      const roleColor = isUser ? '#4ec9b0' : '#569cd6';
+      const roleLabel = isUser ? 'You' : 'Claude';
+
+      const text = stripSystemTags(msg.content);
+      if (!text) continue;
+
+      const display = truncate(text, 350);
+      content += `\n  {${roleColor}-fg}{bold}${icon} ${roleLabel}{/bold}{/${roleColor}-fg}\n`;
+
+      // Indent message text
+      const lines = display.split('\n');
+      for (const line of lines) {
+        content += `  {#bbbbbb-fg}${line}{/#bbbbbb-fg}\n`;
+      }
+    }
   }
 
   box.setContent(content);
-  box.setLabel(
-    ` {bold}Preview{/bold} — ${truncate(session.summary || session.firstPrompt, 25)} `,
-  );
+  box.setLabel(` {bold}Preview{/bold} — ${truncate(title, 28)} `);
   box.scrollTo(0);
 }

@@ -1,6 +1,7 @@
 import blessed from 'blessed';
 import type { Session } from '../core/types.js';
-import { truncate, formatShortDate } from '../utils/format.js';
+import { truncate, formatRelativeDate } from '../utils/format.js';
+import { cleanSessionTitle } from '../utils/format.js';
 
 export function createSessionList(
   parent: blessed.Widgets.Screen,
@@ -16,10 +17,10 @@ export function createSessionList(
     bottom: 3,
     border: { type: 'line' },
     style: {
-      border: { fg: 'cyan' },
-      selected: { bg: '#1a5276', fg: 'white', bold: true },
-      item: { fg: 'white' },
-      label: { fg: 'cyan', bold: true },
+      border: { fg: '#444444' },
+      selected: { bg: '#1a3a4a', fg: 'white', bold: true },
+      item: { fg: '#cccccc' },
+      label: { fg: '#00d4aa', bold: true },
     },
     keys: true,
     vi: true,
@@ -27,9 +28,9 @@ export function createSessionList(
     scrollable: true,
     alwaysScroll: true,
     scrollbar: {
-      ch: '│',
-      track: { bg: '#333333' },
-      style: { bg: 'cyan' },
+      ch: '▐',
+      track: { bg: '#222222' },
+      style: { bg: '#00d4aa' },
     },
     items: [],
     tags: true,
@@ -51,14 +52,18 @@ export function updateListItems(
   sessions: Session[],
 ): void {
   const items = sessions.map((s, i) => {
-    const name = s.name || s.summary || truncate(s.firstPrompt, 30);
-    const date = formatShortDate(s.modified);
-    const branch = truncate(s.branch, 18);
-    const msgs = `${s.messageCount}`;
+    const title = cleanSessionTitle(s);
+    const relDate = formatRelativeDate(s.modified);
+    const branch = truncate(s.branch, 20);
+    const msgs = s.messageCount;
     const tags =
-      s.tags.length > 0 ? ` {cyan-fg}[${s.tags.join(',')}]{/cyan-fg}` : '';
+      s.tags.length > 0
+        ? `  {#00d4aa-fg}${s.tags.map((t) => `#${t}`).join(' ')}{/#00d4aa-fg}`
+        : '';
 
-    return ` {gray-fg}${String(i + 1).padStart(2)}.{/gray-fg} {bold}${truncate(name, 28)}{/bold}${tags}\n     {blue-fg}${branch}{/blue-fg}  {gray-fg}${msgs} msgs  ${date}{/gray-fg}`;
+    const num = String(i + 1).padStart(2);
+
+    return ` {#666666-fg}${num}{/#666666-fg}  {bold}${truncate(title, 32)}{/bold}${tags}\n     {#5588cc-fg}⎇ ${branch}{/#5588cc-fg}  {#666666-fg}💬 ${msgs}  ⏱ ${relDate}{/#666666-fg}`;
   });
   list.setItems(items);
   list.setLabel(` {bold}Sessions{/bold} (${sessions.length}) `);
