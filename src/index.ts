@@ -19,7 +19,7 @@ const program = new Command();
 program
   .name('claude-sessions')
   .description('CLI tool for managing and browsing Claude Code conversations')
-  .version('0.3.1');
+  .version('0.4.0');
 
 program
   .command('list')
@@ -101,8 +101,8 @@ program
   });
 
 program
-  .command('browse')
-  .description('Interactive TUI browser for sessions')
+  .command('browse', { isDefault: true })
+  .description('Interactive TUI browser for sessions (default)')
   .option('-p, --project <path>', 'Filter to specific project directory')
   .option('-P, --project-name <name>', 'Filter to a named project')
   .option('-a, --all', 'Show sessions from all projects')
@@ -110,7 +110,7 @@ program
     browseCommand({
       project: opts.project,
       projectName: opts.projectName,
-      all: opts.all,
+      all: opts.all || true,
     });
   });
 
