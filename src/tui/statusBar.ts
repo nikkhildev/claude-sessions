@@ -5,7 +5,7 @@ export function createSearchBar(
 ): blessed.Widgets.TextboxElement {
   return blessed.textbox({
     parent,
-    label: ' {bold}🔍 Search{/bold} ',
+    label: ' / Search ',
     top: 0,
     left: 0,
     width: '100%',
@@ -18,8 +18,7 @@ export function createSearchBar(
       fg: 'white',
     },
     inputOnFocus: true,
-    tags: true,
-  } as blessed.Widgets.TextboxOptions);
+  });
 }
 
 export function createStatusBar(
@@ -38,6 +37,6 @@ export function createStatusBar(
       fg: '#888888',
     },
     tags: true,
-    content: ` {#00d4aa-fg}?{/#00d4aa-fg} Help  │  ${totalSessions} sessions`,
+    content: ` {#00d4aa-fg}?{/#00d4aa-fg} help  |  ${totalSessions} sessions`,
   });
 }

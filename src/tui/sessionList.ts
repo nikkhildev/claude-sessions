@@ -1,7 +1,6 @@
 import blessed from 'blessed';
 import type { Session } from '../core/types.js';
-import { truncate, formatRelativeDate } from '../utils/format.js';
-import { cleanSessionTitle } from '../utils/format.js';
+import { truncate, formatRelativeDate, cleanSessionTitle } from '../utils/format.js';
 
 export function createSessionList(
   parent: blessed.Widgets.Screen,
@@ -10,7 +9,7 @@ export function createSessionList(
 ): blessed.Widgets.ListElement {
   const list = blessed.list({
     parent,
-    label: ` {bold}Sessions{/bold} (${sessions.length}) `,
+    label: ' Sessions (' + sessions.length + ') ',
     top: 3,
     left: 0,
     width: '50%',
@@ -28,13 +27,12 @@ export function createSessionList(
     scrollable: true,
     alwaysScroll: true,
     scrollbar: {
-      ch: '▐',
+      ch: ' ',
       track: { bg: '#222222' },
       style: { bg: '#00d4aa' },
     },
     items: [],
-    tags: true,
-  } as blessed.Widgets.ListOptions<blessed.Widgets.ListElementStyle>);
+  });
 
   updateListItems(list, sessions);
 
@@ -53,18 +51,9 @@ export function updateListItems(
 ): void {
   const items = sessions.map((s, i) => {
     const title = cleanSessionTitle(s);
-    const relDate = formatRelativeDate(s.modified);
-    const branch = truncate(s.branch, 20);
-    const msgs = s.messageCount;
-    const tags =
-      s.tags.length > 0
-        ? `  {#00d4aa-fg}${s.tags.map((t) => `#${t}`).join(' ')}{/#00d4aa-fg}`
-        : '';
-
-    const num = String(i + 1).padStart(2);
-
-    return ` {#666666-fg}${num}{/#666666-fg}  {bold}${truncate(title, 32)}{/bold}${tags}\n     {#5588cc-fg}⎇ ${branch}{/#5588cc-fg}  {#666666-fg}💬 ${msgs}  ⏱ ${relDate}{/#666666-fg}`;
+    const num = String(i + 1).padStart(3);
+    return `${num}  ${truncate(title, 50)}`;
   });
   list.setItems(items);
-  list.setLabel(` {bold}Sessions{/bold} (${sessions.length}) `);
+  list.setLabel(' Sessions (' + sessions.length + ') ');
 }

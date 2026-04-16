@@ -78,11 +78,10 @@ export function launchTui(opts: {
 
   function updateStatusBar(): void {
     const projectLabel = activeProjectName
-      ? `{#00d4aa-fg}📁 ${activeProjectName}{/#00d4aa-fg}  {#444444-fg}│{/#444444-fg}  `
+      ? `{#00d4aa-fg}[${activeProjectName}]{/#00d4aa-fg}  |  `
       : '';
-    const sortLabel = sortMode === 'date' ? '📅' : sortMode === 'messages' ? '💬' : '⎇';
     statusBar.setContent(
-      ` ${projectLabel}{#888888-fg}${sortLabel} ${sortMode}{/#888888-fg}  {#444444-fg}│{/#444444-fg}  {#888888-fg}${filteredSessions.length}/${baseSessions.length} sessions{/#888888-fg}  {#444444-fg}│{/#444444-fg}  {#00d4aa-fg}?{/#00d4aa-fg} {#666666-fg}help{/#666666-fg}`,
+      ` ${projectLabel}{#888888-fg}sort: ${sortMode}{/#888888-fg}  |  {#888888-fg}${filteredSessions.length}/${baseSessions.length} sessions{/#888888-fg}  |  {#00d4aa-fg}?{/#00d4aa-fg} help`,
     );
   }
 
@@ -313,17 +312,17 @@ export function launchTui(opts: {
     const projects = listProjects();
     const projectNames = Object.keys(projects);
     const menuItems = [
-      '  ✚  New Project',
-      '  ◎  All Sessions (clear filter)',
+      '  + New Project',
+      '  * All Sessions (clear filter)',
       ...projectNames.map(
         (name) =>
-          `  📁  ${name} (${projects[name].sessions.length} sessions)`,
+          `    ${name} (${projects[name].sessions.length} sessions)`,
       ),
     ];
 
     const popup = blessed.list({
       parent: screen,
-      label: ' 📁 Projects ',
+      label: ' Projects ',
       top: 'center',
       left: 'center',
       width: 55,
@@ -408,10 +407,10 @@ export function launchTui(opts: {
     const items = projectNames.map((name) => {
       const isIn = projects[name].sessions.includes(session.id);
       return isIn
-        ? `  📁  ${name}  {#00d4aa-fg}✓{/#00d4aa-fg}`
-        : `  📁  ${name}`;
+        ? `    ${name}  {#00d4aa-fg}(added){/#00d4aa-fg}`
+        : `    ${name}`;
     });
-    items.push('  ✚  New Project');
+    items.push('  + New Project');
 
     const popup = blessed.list({
       parent: screen,
@@ -480,11 +479,11 @@ export function launchTui(opts: {
   screen.key('?', () => {
     const help = blessed.box({
       parent: screen,
-      label: ' {bold}⌨ Keyboard Shortcuts{/bold} ',
+      label: ' Keyboard Shortcuts ',
       top: 'center',
       left: 'center',
-      width: 58,
-      height: 24,
+      width: 52,
+      height: 22,
       border: { type: 'line' },
       style: {
         border: { fg: '#00d4aa' },
@@ -493,24 +492,24 @@ export function launchTui(opts: {
       tags: true,
       content: [
         '',
-        '  {#00d4aa-fg}{bold}Navigation{/bold}{/#00d4aa-fg}',
-        '  {bold}↑ ↓{/bold}  or  {bold}j k{/bold}     Navigate sessions',
-        '  {bold}Enter{/bold}              Open in Claude Code',
-        '  {bold}/{/bold}                  Search / filter',
-        '  {bold}s{/bold}                  Cycle sort  📅 💬 ⎇',
+        '  {#00d4aa-fg}NAVIGATE{/#00d4aa-fg}',
+        '  {bold}Up/Down{/bold} or {bold}j/k{/bold}   Move through sessions',
+        '  {bold}Enter{/bold}             Open in Claude Code',
+        '  {bold}/{/bold}                 Search',
+        '  {bold}s{/bold}                 Sort: date/msgs/branch',
         '',
-        '  {#00d4aa-fg}{bold}Organize{/bold}{/#00d4aa-fg}',
-        '  {bold}t{/bold}                  Add tags',
-        '  {bold}T{/bold}  (shift)         Remove a tag',
-        '  {bold}p{/bold}                  📁 Project menu',
-        '  {bold}a{/bold}                  Add session to project',
-        '  {bold}r{/bold}                  Remove from project',
+        '  {#00d4aa-fg}ORGANIZE{/#00d4aa-fg}',
+        '  {bold}t{/bold}                 Add tags',
+        '  {bold}T{/bold} (Shift+t)       Remove a tag',
+        '  {bold}p{/bold}                 Projects menu',
+        '  {bold}a{/bold}                 Add to project',
+        '  {bold}r{/bold}                 Remove from project',
         '',
-        '  {#00d4aa-fg}{bold}General{/bold}{/#00d4aa-fg}',
-        '  {bold}?{/bold}                  This help',
-        '  {bold}q{/bold}  or  {bold}Ctrl-C{/bold}     Quit',
+        '  {#00d4aa-fg}OTHER{/#00d4aa-fg}',
+        '  {bold}?{/bold}                 This help',
+        '  {bold}q{/bold} or {bold}Ctrl-C{/bold}       Quit',
         '',
-        '  {#555555-fg}Press any key to close{/#555555-fg}',
+        '  {#555555-fg}any key to close{/#555555-fg}',
       ].join('\n'),
     });
 

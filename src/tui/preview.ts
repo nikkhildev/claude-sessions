@@ -6,6 +6,7 @@ import {
   truncate,
   stripSystemTags,
   cleanSessionTitle,
+  formatRelativeDate,
 } from '../utils/format.js';
 
 export function createPreview(
@@ -13,7 +14,7 @@ export function createPreview(
 ): blessed.Widgets.BoxElement {
   return blessed.box({
     parent,
-    label: ' {bold}Preview{/bold} ',
+    label: ' Preview ',
     top: 3,
     right: 0,
     width: '50%',
@@ -26,7 +27,7 @@ export function createPreview(
     scrollable: true,
     alwaysScroll: true,
     scrollbar: {
-      ch: '▐',
+      ch: ' ',
       track: { bg: '#222222' },
       style: { bg: '#00d4aa' },
     },
@@ -34,7 +35,7 @@ export function createPreview(
     keys: true,
     vi: true,
     tags: true,
-    content: '\n  {#666666-fg}← Select a session to preview{/#666666-fg}',
+    content: '\n  {#666666-fg}Select a session to preview{/#666666-fg}',
   });
 }
 
@@ -47,42 +48,40 @@ export function updatePreview(
 
   let content = '';
 
-  // ── Header ──
+  // Header
   content += `\n  {bold}{white-fg}${title}{/white-fg}{/bold}\n\n`;
-  content += `  {#00d4aa-fg}⎇{/#00d4aa-fg}  {#5588cc-fg}${session.branch}{/#5588cc-fg}\n`;
-  content += `  {#00d4aa-fg}📅{/#00d4aa-fg} {#888888-fg}${formatDate(session.created.toISOString())}{/#888888-fg}\n`;
-  content += `  {#00d4aa-fg}💬{/#00d4aa-fg} {white-fg}${session.messageCount} messages{/white-fg}\n`;
-  content += `  {#00d4aa-fg}🔑{/#00d4aa-fg} {#555555-fg}${session.id.slice(0, 8)}...{/#555555-fg}\n`;
+  content += `  {#00d4aa-fg}Branch:{/#00d4aa-fg}    {#5588cc-fg}${session.branch}{/#5588cc-fg}\n`;
+  content += `  {#00d4aa-fg}Date:{/#00d4aa-fg}      {#888888-fg}${formatDate(session.created.toISOString())}{/#888888-fg}\n`;
+  content += `  {#00d4aa-fg}Messages:{/#00d4aa-fg}  {white-fg}${session.messageCount}{/white-fg}\n`;
+  content += `  {#00d4aa-fg}ID:{/#00d4aa-fg}        {#555555-fg}${session.id.slice(0, 8)}{/#555555-fg}\n`;
 
   if (session.tags.length > 0) {
     const tagStr = session.tags
       .map((t) => `{#00d4aa-fg}#${t}{/#00d4aa-fg}`)
       .join('  ');
-    content += `  {#00d4aa-fg}🏷{/#00d4aa-fg}  ${tagStr}\n`;
+    content += `  {#00d4aa-fg}Tags:{/#00d4aa-fg}     ${tagStr}\n`;
   }
 
-  // ── Divider ──
+  // Divider
   content +=
-    '\n  {#333333-fg}─────────────────────────────────────────{/#333333-fg}\n';
+    '\n  {#333333-fg}----------------------------------------{/#333333-fg}\n';
 
-  // ── Messages ──
+  // Messages
   if (messages.length === 0) {
     content +=
       '\n  {#666666-fg}No messages found in session file{/#666666-fg}\n';
   } else {
     for (const msg of messages) {
       const isUser = msg.type === 'user';
-      const icon = isUser ? '▸' : '◂';
       const roleColor = isUser ? '#4ec9b0' : '#569cd6';
-      const roleLabel = isUser ? 'You' : 'Claude';
+      const roleLabel = isUser ? '> You' : '< Claude';
 
       const text = stripSystemTags(msg.content);
       if (!text) continue;
 
       const display = truncate(text, 350);
-      content += `\n  {${roleColor}-fg}{bold}${icon} ${roleLabel}{/bold}{/${roleColor}-fg}\n`;
+      content += `\n  {${roleColor}-fg}{bold}${roleLabel}{/bold}{/${roleColor}-fg}\n`;
 
-      // Indent message text
       const lines = display.split('\n');
       for (const line of lines) {
         content += `  {#bbbbbb-fg}${line}{/#bbbbbb-fg}\n`;
@@ -91,6 +90,6 @@ export function updatePreview(
   }
 
   box.setContent(content);
-  box.setLabel(` {bold}Preview{/bold} — ${truncate(title, 28)} `);
+  box.setLabel(` Preview -- ${truncate(title, 28)} `);
   box.scrollTo(0);
 }
