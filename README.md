@@ -1,140 +1,131 @@
-# claude-sessions
+# claude-code-sessions
 
-CLI tool for managing and browsing [Claude Code](https://docs.anthropic.com/en/docs/claude-code) conversations.
+> Organize your Claude Code conversations. Find them again. Actually use them.
 
-Claude Code stores conversations locally but provides limited tools for finding, organizing, and searching past sessions. `claude-sessions` fills that gap with listing, searching, tagging, and an interactive TUI browser.
+[![npm version](https://img.shields.io/npm/v/claude-code-sessions.svg)](https://www.npmjs.com/package/claude-code-sessions)
+[![license](https://img.shields.io/npm/l/claude-code-sessions.svg)](https://github.com/nikkhildev/claude-sessions/blob/main/LICENSE)
+
+## Why?
+
+If you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code), you know the pain:
+
+- You had a great conversation last week about that auth bug → **can't find it**
+- You've accumulated 100+ sessions → **no way to organize them**
+- The built-in `/resume` picker shows only session IDs and first prompts → **no search, no folders, no tags**
+
+**Unlike [Claude.ai](https://claude.ai), Claude Code has no Projects or Folders.** Your conversations are a flat pile of JSONL files.
+
+This tool fixes that.
+
+---
+
+## Screenshot
+
+![claude-code-sessions TUI](docs/images/tui-browser.png)
+
+Three panes — Projects on the left, Sessions in the middle, live Preview on the right. Navigate with arrow keys, search with `/`, open with Enter.
+
+---
 
 ## Install
 
 ```bash
-npm install -g claude-sessions
+npm install -g claude-code-sessions
 ```
 
-Or use directly with npx:
+Requires Node.js 18+ and Claude Code already installed.
+
+---
+
+## Quick Start
+
+Just run:
 
 ```bash
-npx claude-sessions list --all
+claude-sessions
 ```
 
-## Commands
+That's it. The interactive browser opens.
 
-### `list` (alias: `ls`)
+### Keyboard shortcuts
 
-List sessions sorted by most recent:
+| Key | What it does |
+|-----|--------------|
+| `← →` | Switch between panes |
+| `↑ ↓` | Move up/down in focused pane |
+| `Enter` | Open highlighted session in Claude Code |
+| `/` | Search across all conversation content |
+| `Esc` | Clear search |
+| `s` | Cycle sort: date / messages / branch |
+| `t` | Add tags to selected session |
+| `T` | Remove a tag |
+| `n` | Create a new project |
+| `a` | Add selected session to a project |
+| `r` | Remove session from active project |
+| `?` | Help overlay |
+| `q` | Quit |
+
+---
+
+## What you can do
+
+### 📁 Group sessions into projects (like Claude.ai folders)
 
 ```bash
-claude-sessions list              # Sessions for current project
-claude-sessions list --all        # All projects
-claude-sessions list --branch main --since 7d
-claude-sessions list --tag sprint-4
-claude-sessions list --json       # JSON output for scripting
+claude-sessions project create "Sprint 5 - Auth Refactor"
+claude-sessions project add "Sprint 5 - Auth Refactor" abc123 def456
 ```
 
-**Flags:**
+Or do it entirely from the TUI: press `n` to create, `a` to add a session.
 
-| Flag | Description |
-|------|-------------|
-| `-a, --all` | Show sessions from all projects |
-| `-p, --project <path>` | Filter to specific project |
-| `-l, --limit <n>` | Number of results (default: 20) |
-| `-s, --sort <field>` | Sort by: `date`, `messages`, `branch` |
-| `-b, --branch <name>` | Filter by git branch |
-| `-t, --tag <name>` | Filter by custom tag |
-| `--since <date>` | Sessions after date (e.g., `7d`, `2w`, `2026-04-01`) |
-| `--json` | Output as JSON |
-
-### `search`
-
-Full-text search across conversation content:
+### 🔍 Actually search your conversations
 
 ```bash
 claude-sessions search "rate limiting"
-claude-sessions search "auth bug" --all --limit 5
 ```
 
-### `show`
+Full-text fuzzy search across every message you've ever sent Claude, not just titles.
 
-View session details and conversation preview:
+### 🏷️ Tag anything
 
 ```bash
-claude-sessions show abc12345     # Partial UUID
-claude-sessions show "#3"         # Index from last list
-claude-sessions show auth-fix     # Custom name
-claude-sessions show abc12 --full # Complete conversation
+claude-sessions tag abc123 bug critical sprint-5
+claude-sessions list --tag critical
 ```
 
-### `open`
-
-Open a session in Claude Code:
+### 📋 Power-user CLI commands
 
 ```bash
-claude-sessions open abc12345
-claude-sessions open "#1"
+claude-sessions list --branch auth --since 7d   # recent auth work
+claude-sessions list --sort messages            # longest sessions first
+claude-sessions show abc123 --full              # view full conversation
+claude-sessions open abc123                     # jump into Claude Code
+claude-sessions list --json | jq '.[0].id'      # scriptable
 ```
 
-### `browse`
+Run `claude-sessions --help` to see everything.
 
-Interactive TUI browser with search and preview:
+---
 
-```bash
-claude-sessions browse            # Current project
-claude-sessions browse --all      # All projects
-```
+## How it works
 
-**Keyboard shortcuts:**
+- Reads Claude Code's session storage at `~/.claude/projects/` — **strictly read-only**
+- Stores your custom tags, names, and projects in a sidecar file at `~/.claude-sessions/metadata.json`
+- **Never modifies Claude's files.** Safe to use alongside any Claude Code version.
 
-| Key | Action |
-|-----|--------|
-| `↑/↓` or `j/k` | Navigate sessions |
-| `Enter` | Open in Claude Code |
-| `/` | Search |
-| `t` | Tag selected session |
-| `s` | Toggle sort (date/messages/branch) |
-| `?` | Help |
-| `q` | Quit |
+---
 
-### `tag` / `untag`
+## Why I built this
 
-Organize sessions with custom tags:
+Claude.ai has Projects. Claude Code doesn't. I had 280+ conversations and couldn't find anything.
 
-```bash
-claude-sessions tag abc123 sprint-4 auth
-claude-sessions untag abc123 auth
-```
+There's an open [feature request](https://github.com/anthropics/claude-code/issues/50031) to add session organization to Claude Code officially. Until that ships, this tool fills the gap.
 
-## Configuration
+---
 
-Optional config at `~/.claude-sessions/config.json`:
+## Contributing
 
-```json
-{
-  "defaultLimit": 20,
-  "defaultSort": "date",
-  "claudePath": "claude",
-  "previewMessages": 10
-}
-```
-
-## How It Works
-
-- Reads Claude Code's session storage at `~/.claude/projects/` (read-only)
-- Uses `sessions-index.json` when available, falls back to parsing JSONL files
-- Stores tags and custom names in `~/.claude-sessions/metadata.json`
-- **Never modifies** Claude Code's own files
-
-## Session Resolution
-
-Sessions can be referenced by:
-
-1. **Full UUID**: `034523d5-46c1-4c09-b867-468adf04e3af`
-2. **Partial UUID**: `034523d5` (minimum 4 chars, must be unambiguous)
-3. **Custom name**: `my-auth-fix` (set via tag command)
-4. **Index number**: `#3` (from most recent `list` output)
-
-## Requirements
-
-- Node.js 18+
-- Claude Code CLI installed
+Bug reports, feature requests, and PRs welcome at [github.com/nikkhildev/claude-sessions](https://github.com/nikkhildev/claude-sessions).
 
 ## License
 

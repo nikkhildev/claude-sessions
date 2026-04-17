@@ -19,7 +19,7 @@ const program = new Command();
 program
   .name('claude-sessions')
   .description('CLI tool for managing and browsing Claude Code conversations')
-  .version('0.4.1');
+  .version('0.5.0');
 
 program
   .command('list')
@@ -106,11 +106,13 @@ program
   .option('-p, --project <path>', 'Filter to specific project directory')
   .option('-P, --project-name <name>', 'Filter to a named project')
   .option('-a, --all', 'Show sessions from all projects')
+  .option('--demo', 'Demo mode with fake sessions (safe for screenshots)')
   .action((opts) => {
     browseCommand({
       project: opts.project,
       projectName: opts.projectName,
       all: opts.all || true,
+      demo: opts.demo,
     });
   });
 

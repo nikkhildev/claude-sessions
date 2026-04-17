@@ -24,6 +24,11 @@ import {
   stripSystemTags,
   cleanSessionTitle,
 } from '../utils/format.js';
+import {
+  buildDemoSessions,
+  buildDemoMessages,
+  buildDemoProjectList,
+} from '../core/demoData.js';
 
 type Pane = 'projects' | 'sessions' | 'preview';
 
@@ -31,21 +36,32 @@ export function launchTui(opts: {
   project?: string;
   projectName?: string;
   all?: boolean;
+  demo?: boolean;
 }): void {
-  // ── Load data ──
-  let projectDirs: string[] | undefined;
-  if (!opts.all && opts.project) {
-    const dir = findProjectDir(opts.project);
-    if (dir) projectDirs = [dir];
-  } else if (!opts.all) {
-    const cwd = process.cwd();
-    const dir = findProjectDir(cwd);
-    if (dir) projectDirs = [dir];
-  }
+  // ── Demo mode: use fake in-memory data ──
+  const demoMode = opts.demo === true;
+  const demoProjectsList = demoMode ? buildDemoProjectList() : [];
 
-  const baseSessions = loadAllSessions(projectDirs)
-    .filter((s) => !s.archived)
-    .sort((a, b) => b.modified.getTime() - a.modified.getTime());
+  // ── Load data ──
+  let baseSessions: Session[];
+  if (demoMode) {
+    baseSessions = buildDemoSessions().sort(
+      (a, b) => b.modified.getTime() - a.modified.getTime(),
+    );
+  } else {
+    let projectDirs: string[] | undefined;
+    if (!opts.all && opts.project) {
+      const dir = findProjectDir(opts.project);
+      if (dir) projectDirs = [dir];
+    } else if (!opts.all) {
+      const cwd = process.cwd();
+      const dir = findProjectDir(cwd);
+      if (dir) projectDirs = [dir];
+    }
+    baseSessions = loadAllSessions(projectDirs)
+      .filter((s) => !s.archived)
+      .sort((a, b) => b.modified.getTime() - a.modified.getTime());
+  }
 
   // ── State ──
   let modalOpen = false;
@@ -156,7 +172,15 @@ export function launchTui(opts: {
   // ── Helpers ──
 
   function getProjectNames(): string[] {
+    if (demoMode) return demoProjectsList.map((p) => p.name);
     return Object.keys(listProjects());
+  }
+
+  function getProjectIds(name: string): string[] {
+    if (demoMode) {
+      return demoProjectsList.find((p) => p.name === name)?.sessions || [];
+    }
+    return getProjectSessionIds(name);
   }
 
   function refreshProjectPane(): void {
@@ -179,7 +203,7 @@ export function launchTui(opts: {
 
     // Project filter
     if (activeProjectName) {
-      const ids = new Set(getProjectSessionIds(activeProjectName));
+      const ids = new Set(getProjectIds(activeProjectName));
       sessions = sessions.filter((s) => ids.has(s.id));
     }
 
@@ -235,7 +259,9 @@ export function launchTui(opts: {
       return;
     }
 
-    const messages = readSessionMessages(session.jsonlPath, 20);
+    const messages = demoMode
+      ? buildDemoMessages(session.id)
+      : readSessionMessages(session.jsonlPath, 20);
     const title = cleanSessionTitle(session);
 
     let c = '';
@@ -275,10 +301,11 @@ export function launchTui(opts: {
   function updateStatusBar(): void {
     const proj = activeProjectName ? `[${activeProjectName}]` : 'All';
     const search = searchQuery ? `  {#ff9966-fg}search:"${searchQuery}" (esc to clear){/#ff9966-fg}` : '';
+    const demoTag = demoMode ? '{#ff9966-fg}[DEMO]{/#ff9966-fg}  ' : '';
     const k = (key: string, desc: string): string =>
       `{#00d4aa-fg}${key}{/#00d4aa-fg} ${desc}`;
     statusBar.setContent(
-      ` ${k('←→', 'pane')}  ${k('↵', 'open')}  ${k('/', 'search')}  ${k('t', 'tag')}  ${k('a', 'add to project')}  ${k('n', 'new project')}  ${k('?', 'help')}  ${k('q', 'quit')}  {#555555-fg}|{/#555555-fg}  {#888888-fg}${proj} · ${filteredSessions.length}/${baseSessions.length} · sort:${sortMode}${search}{/#888888-fg}`,
+      ` ${demoTag}${k('←→', 'pane')}  ${k('↵', 'open')}  ${k('/', 'search')}  ${k('t', 'tag')}  ${k('a', 'add to project')}  ${k('n', 'new project')}  ${k('?', 'help')}  ${k('q', 'quit')}  {#555555-fg}|{/#555555-fg}  {#888888-fg}${proj} · ${filteredSessions.length}/${baseSessions.length} · sort:${sortMode}${search}{/#888888-fg}`,
     );
   }
 
@@ -309,6 +336,32 @@ export function launchTui(opts: {
   }
 
   function openSession(session: Session): void {
+    if (demoMode) {
+      // In demo mode, show a fake "would open" message instead of spawning claude
+      const banner = blessed.box({
+        parent: screen,
+        label: ' Demo Mode ',
+        top: 'center',
+        left: 'center',
+        width: 52,
+        height: 7,
+        border: { type: 'line' },
+        style: { border: { fg: '#00d4aa' }, label: { fg: '#00d4aa' } },
+        tags: true,
+        content:
+          '\n  {bold}In real use:{/bold} opens this session in\n  Claude Code via `claude --resume <id>`\n\n  {#555555-fg}Press any key to dismiss{/#555555-fg}',
+      });
+      modalOpen = true;
+      banner.focus();
+      banner.key(['escape', 'q', 'enter', 'space'], () => {
+        banner.destroy();
+        modalOpen = false;
+        focusPane(activePane);
+        screen.render();
+      });
+      screen.render();
+      return;
+    }
     screen.destroy();
     const config = loadConfig();
     const child = spawn(config.claudePath, ['--resume', session.id], {
