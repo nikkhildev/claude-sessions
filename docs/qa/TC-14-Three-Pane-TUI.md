@@ -78,7 +78,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 2 | Observe initial screen | Three vertical panes + status bar at bottom |
 | 3 | Check status bar content | Shows `Tab switch pane | [project] sort:date  N/N | ? help` |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -96,7 +96,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 4 | Verify borders are visible between panes | All three have line borders |
 | 5 | Verify text is readable | Titles in white/bold, metadata in muted gray |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -112,7 +112,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 2 | Observe other two pane borders | Projects and Preview have gray/dim borders (`#444444`) |
 | 3 | Press Up/Down arrow | Selection moves in the Sessions list only |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -129,7 +129,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 3 | Press `Tab` again | Focus returns to Sessions pane (green border on middle pane) |
 | 4 | Each time, verify only ONE pane has a green border | No overlap or stuck focus |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -145,7 +145,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 2 | Press `Shift+Tab` again | Focus moves to Preview pane |
 | 3 | Press `Shift+Tab` again | Focus returns to Sessions pane |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -163,7 +163,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 4 | Press `Tab` twice to focus Preview | Preview border green |
 | 5 | Press `Down` | Preview content scrolls down. Sessions selection unchanged |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -180,7 +180,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 3 | Observe Claude Code | Resumes the exact session (same conversation history) |
 | 4 | Exit Claude Code | Returns to your terminal prompt (not the TUI) |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -197,7 +197,7 @@ Default command `claude-sessions` with no args opens the TUI directly. All three
 | 3 | Run `echo $?` | Returns `0` (clean exit) |
 | 4 | Alternative: open TUI again and press `Ctrl+C` | Same clean exit behavior |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -217,7 +217,7 @@ claude-sessions project create "Test Project B"
 | 2 | Verify "All" is selected by default (shown with `>` marker) | Yes |
 | 3 | Focus Projects pane with Tab | Border goes green |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -235,7 +235,7 @@ claude-sessions project create "Test Project B"
 | 4 | Middle pane label updates | e.g. "Sessions (1)" |
 | 5 | Status bar shows `[Test Project A]` | Yes |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -251,7 +251,7 @@ claude-sessions project create "Test Project B"
 | 2 | Navigate to "> All" (top) and press `Enter` | Sessions pane shows all sessions again |
 | 3 | Status bar shows `All` instead of `[project name]` | Yes |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -268,7 +268,7 @@ claude-sessions project create "Test Project B"
 | 3 | Press `Down` again | Preview updates again |
 | 4 | Verify conversation messages appear below metadata (`> You` and `< Claude` labels) | Yes |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -286,7 +286,7 @@ claude-sessions project create "Test Project B"
 | 4 | Middle pane label reflects count | e.g. "Sessions (5)" |
 | 5 | Status bar shows `search: "auth"` | Yes |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -303,7 +303,7 @@ claude-sessions project create "Test Project B"
 | 3 | Press `s` again | Status bar shows `sort:branch`; sessions ordered alphabetically by branch |
 | 4 | Press `s` once more | Cycles back to `sort:date` |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -319,7 +319,7 @@ claude-sessions project create "Test Project B"
 | 2 | Verify sections visible: NAVIGATE, SEARCH & SORT, ORGANIZE | All three sections with key + description |
 | 3 | Press any key (e.g. spacebar) | Modal closes, normal TUI restored |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -335,7 +335,7 @@ claude-sessions project create "Test Project B"
 | 2 | Press `Esc` | Search cleared, all sessions restored |
 | 3 | Status bar no longer shows search text | Yes |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -351,7 +351,7 @@ claude-sessions project create "Test Project B"
 | 2 | Preview pane shows message | "No sessions found" in gray |
 | 3 | No crash, no layout break | TUI still usable, can switch back to "All" |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -369,7 +369,7 @@ claude-sessions project create "Test Project B"
 
 **Security note**: Metadata may include branch names, session IDs, and custom tags that could reveal work context. Should not be world-readable.
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -388,7 +388,7 @@ claude-sessions project create "Test Project B"
 
 **Security note**: claude-sessions is strictly read-only on Claude Code's data directory. Any write would be a contract violation.
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -406,7 +406,7 @@ claude-sessions project create "Test Project B"
 | 4 | Verify persistence: quit TUI, re-run `claude-sessions`, navigate back to same session | Tags still present |
 | 5 | Check file: `cat ~/.claude-sessions/metadata.json | grep -A3 <session-id>` | `tags: ["urgent","review"]` present |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -424,7 +424,7 @@ claude-sessions project create "Test Project B"
 | 4 | Preview updates | `Tags:` now shows only `#review` |
 | 5 | Check metadata file | `"tags": ["review"]` |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -441,7 +441,7 @@ claude-sessions project create "Test Project B"
 | 3 | Check Projects pane | "Sprint Planning" added to list |
 | 4 | Check metadata file | `projects: { "Sprint Planning": { sessions: [], created: "..." } }` |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -458,7 +458,7 @@ claude-sessions project create "Test Project B"
 | 3 | Navigate to that project in Projects pane, select it | Sessions list shows the added session |
 | 4 | Press `a` on the same session again | Popup now shows project with "(added)" marker next to it |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -475,7 +475,7 @@ claude-sessions project create "Test Project B"
 | 3 | Session count label decreases | e.g. "Sessions (3)" → "Sessions (2)" |
 | 4 | Switch to "All" project | Session still appears there (it's only removed from the project, not deleted) |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -494,7 +494,7 @@ claude-sessions project create "Test Project B"
 
 **Note**: CLI command `claude-sessions project create "Test Dup"` SHOULD show an error message on stderr. TUI intentionally swallows the error because the user can see the project already exists.
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -512,7 +512,7 @@ claude-sessions project create "Test Project B"
 | 4 | Preview pane | Shows "No sessions found" message |
 | 5 | Press `Esc` | Search cleared, all sessions back |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -531,7 +531,7 @@ claude-sessions project create "Test Project B"
 | 5 | Run `claude-sessions tag <session-id> regression-test` | "Tagged <id> with: regression-test" |
 | 6 | Run `claude-sessions --version` | Prints `0.4.0` (or newer) |
 
-**Result**: [ ] PASS / [ ] FAIL
+**Result**: [x] PASS / [ ] FAIL
 
 ---
 
@@ -601,7 +601,7 @@ Run the TUI in each of these environments and verify no broken characters:
 
 | Date | Tester | Version | Pass | Fail | Skipped | Notes |
 |------|--------|---------|------|------|---------|-------|
-| | | v0.4.0 | / 25 | / 25 | / 25 | |
+| 2026-04-17 | Nikhil Limbad | v0.4.0 | 25 / 25 | 0 / 25 | 0 / 25 | 10 bugs fixed during testing, all resolved |
 
 ---
 

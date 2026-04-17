@@ -19,7 +19,7 @@ const program = new Command();
 program
   .name('claude-sessions')
   .description('CLI tool for managing and browsing Claude Code conversations')
-  .version('0.4.0');
+  .version('0.4.1');
 
 program
   .command('list')

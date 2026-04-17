@@ -48,6 +48,7 @@ export function launchTui(opts: {
     .sort((a, b) => b.modified.getTime() - a.modified.getTime());
 
   // ── State ──
+  let modalOpen = false;
   let activePane: Pane = 'sessions';
   let activeProjectName: string | null = opts.projectName || null;
   let filteredSessions: Session[] = [];
@@ -71,17 +72,17 @@ export function launchTui(opts: {
     left: 0,
     width: '18%',
     bottom: 3,
-    border: { type: 'line' },
+    border: { type: 'line', fg: '#444444' },
     style: {
-      border: { fg: '#00d4aa' },
+      border: { fg: '#444444' },
       selected: { bg: '#1a3a4a', fg: 'white', bold: true },
       item: { fg: '#888888' },
       label: { fg: '#00d4aa', bold: true },
-      focus: { border: { fg: '#00d4aa' } },
     },
     keys: true,
     vi: true,
     mouse: true,
+    tags: true,
     items: [],
   });
 
@@ -93,13 +94,12 @@ export function launchTui(opts: {
     left: '18%',
     width: '32%',
     bottom: 3,
-    border: { type: 'line' },
+    border: { type: 'line', fg: '#444444' },
     style: {
       border: { fg: '#444444' },
       selected: { bg: '#1a3a4a', fg: 'white', bold: true },
       item: { fg: '#cccccc' },
       label: { fg: '#00d4aa', bold: true },
-      focus: { border: { fg: '#00d4aa' } },
     },
     keys: true,
     vi: true,
@@ -118,11 +118,10 @@ export function launchTui(opts: {
     left: '50%',
     width: '50%',
     bottom: 3,
-    border: { type: 'line' },
+    border: { type: 'line', fg: '#444444' },
     style: {
       border: { fg: '#444444' },
       label: { fg: '#00d4aa', bold: true },
-      focus: { border: { fg: '#00d4aa' } },
     },
     scrollable: true,
     alwaysScroll: true,
@@ -275,18 +274,33 @@ export function launchTui(opts: {
 
   function updateStatusBar(): void {
     const proj = activeProjectName ? `[${activeProjectName}]` : 'All';
-    const search = searchQuery ? `  search: "${searchQuery}"` : '';
+    const search = searchQuery ? `  {#ff9966-fg}search:"${searchQuery}" (esc to clear){/#ff9966-fg}` : '';
+    const k = (key: string, desc: string): string =>
+      `{#00d4aa-fg}${key}{/#00d4aa-fg} ${desc}`;
     statusBar.setContent(
-      ` {#00d4aa-fg}Tab{/#00d4aa-fg} switch pane  |  {#888888-fg}${proj}  sort:${sortMode}${search}  ${filteredSessions.length}/${baseSessions.length}{/#888888-fg}  |  {#00d4aa-fg}?{/#00d4aa-fg} help`,
+      ` ${k('←→', 'pane')}  ${k('↵', 'open')}  ${k('/', 'search')}  ${k('t', 'tag')}  ${k('a', 'add to project')}  ${k('n', 'new project')}  ${k('?', 'help')}  ${k('q', 'quit')}  {#555555-fg}|{/#555555-fg}  {#888888-fg}${proj} · ${filteredSessions.length}/${baseSessions.length} · sort:${sortMode}${search}{/#888888-fg}`,
     );
+  }
+
+  function setBorder(
+    widget: blessed.Widgets.BlessedElement,
+    color: string,
+  ): void {
+    // blessed requires direct assignment to .border.fg (not .style.border.fg)
+    // to update live
+    const w = widget as unknown as {
+      border: { fg: string };
+      style: { border: { fg: string } };
+    };
+    if (w.border) w.border.fg = color;
+    if (w.style?.border) w.style.border.fg = color;
   }
 
   function focusPane(pane: Pane): void {
     activePane = pane;
-    // Update border colors to show focus
-    projectPane.style.border.fg = pane === 'projects' ? '#00d4aa' : '#444444';
-    sessionPane.style.border.fg = pane === 'sessions' ? '#00d4aa' : '#444444';
-    previewPane.style.border.fg = pane === 'preview' ? '#00d4aa' : '#444444';
+    setBorder(projectPane, pane === 'projects' ? '#00d4aa' : '#444444');
+    setBorder(sessionPane, pane === 'sessions' ? '#00d4aa' : '#444444');
+    setBorder(previewPane, pane === 'preview' ? '#00d4aa' : '#444444');
 
     if (pane === 'projects') projectPane.focus();
     else if (pane === 'sessions') sessionPane.focus();
@@ -309,6 +323,7 @@ export function launchTui(opts: {
   }
 
   function showInput(label: string, callback: (value: string) => void): void {
+    modalOpen = true;
     const input = blessed.textbox({
       parent: screen,
       label: ` ${label} `,
@@ -328,28 +343,29 @@ export function launchTui(opts: {
     screen.render();
     input.on('submit', (value: string) => {
       input.destroy();
+      modalOpen = false;
       if (value && value.trim()) callback(value.trim());
       focusPane(activePane);
     });
     input.on('cancel', () => {
       input.destroy();
+      modalOpen = false;
       focusPane(activePane);
     });
   }
 
   // ── Events: Project pane ──
 
-  projectPane.on('select', (_item: unknown, index: number) => {
+  // Live filter as you navigate projects (no Enter needed)
+  projectPane.on('select item', (_item: unknown, index: number) => {
     const names = getProjectNames();
-    if (index === 0) {
-      activeProjectName = null;
-    } else {
-      activeProjectName = names[index - 1] || null;
+    const newProject = index === 0 ? null : names[index - 1] || null;
+    if (newProject !== activeProjectName) {
+      activeProjectName = newProject;
+      refreshSessionPane();
+      updateStatusBar();
+      screen.render();
     }
-    refreshProjectPane();
-    refreshSessionPane();
-    updateStatusBar();
-    screen.render();
   });
 
   // ── Events: Session pane ──
@@ -368,31 +384,36 @@ export function launchTui(opts: {
   // ── Global keys ──
 
   screen.key(['q', 'C-c'], () => {
+    if (modalOpen) return; // don't quit while a popup is open
     screen.destroy();
     process.exit(0);
   });
 
-  // Tab to switch panes
-  screen.key(['tab'], () => {
+  // Tab / Right arrow to cycle forward
+  screen.key(['tab', 'right', 'l'], () => {
     const order: Pane[] = ['projects', 'sessions', 'preview'];
     const next = order[(order.indexOf(activePane) + 1) % 3];
     focusPane(next);
   });
 
-  screen.key(['S-tab'], () => {
+  // Shift+Tab / Left arrow to cycle backward
+  screen.key(['S-tab', 'left', 'h'], () => {
     const order: Pane[] = ['projects', 'sessions', 'preview'];
     const prev = order[(order.indexOf(activePane) + 2) % 3];
     focusPane(prev);
   });
 
-  // Search
-  screen.key('/', () => {
-    showInput('Search', (value) => {
-      searchQuery = value;
-      refreshSessionPane();
-      updateStatusBar();
-      screen.render();
-    });
+  // Search on `/` (no shift). Shift+/ = ? handled separately for help.
+  screen.on('keypress', (_ch: string, key: { full: string; shift: boolean }) => {
+    if (!key) return;
+    if (key.full === '/' && !key.shift) {
+      showInput('Search', (value) => {
+        searchQuery = value;
+        refreshSessionPane();
+        updateStatusBar();
+        screen.render();
+      });
+    }
   });
 
   // Clear search
@@ -415,63 +436,78 @@ export function launchTui(opts: {
     screen.render();
   });
 
-  // Tag
-  screen.key('t', () => {
-    const session = filteredSessions[sessionIndex];
-    if (!session) return;
-    showInput('Add tags (comma-separated)', (value) => {
-      const tags = value.split(',').map((t) => t.trim()).filter(Boolean);
-      addTags(session.id, tags);
-      session.tags = [...new Set([...session.tags, ...tags])];
-      refreshPreview();
+  // Tag (t) and Untag (Shift+t = T) — differentiated via keypress event
+  screen.on('keypress', (ch: string, key: { full: string; shift: boolean }) => {
+    if (!key || modalOpen) return;
+
+    // Lowercase 't' = Add tags
+    if (key.full === 't' && !key.shift) {
+      const session = filteredSessions[sessionIndex];
+      if (!session) return;
+      showInput('Add tags (comma-separated)', (value) => {
+        const tags = value.split(',').map((tg) => tg.trim()).filter(Boolean);
+        addTags(session.id, tags);
+        session.tags = [...new Set([...session.tags, ...tags])];
+        refreshPreview();
+        screen.render();
+      });
+      return;
+    }
+
+    // Uppercase 'T' (Shift+t) = Remove tag
+    if (key.full === 'S-t' || (key.full === 't' && key.shift) || ch === 'T') {
+      const session = filteredSessions[sessionIndex];
+      if (!session || session.tags.length === 0) return;
+      modalOpen = true;
+
+      const tagsSnapshot = [...session.tags];
+
+      const popup = blessed.list({
+        parent: screen,
+        label: ' Remove tag ',
+        top: 'center',
+        left: 'center',
+        width: 40,
+        height: Math.min(tagsSnapshot.length + 4, 15),
+        border: { type: 'line' },
+        style: {
+          border: { fg: '#00d4aa' },
+          selected: { bg: '#1a3a4a', fg: 'white' },
+          item: { fg: '#cccccc' },
+          label: { fg: '#00d4aa' },
+        },
+        keys: true,
+        vi: true,
+        items: tagsSnapshot,
+      });
+      popup.focus();
       screen.render();
-    });
-  });
 
-  // Untag
-  screen.key('T', () => {
-    const session = filteredSessions[sessionIndex];
-    if (!session || session.tags.length === 0) return;
-
-    const popup = blessed.list({
-      parent: screen,
-      label: ' Remove tag ',
-      top: 'center',
-      left: 'center',
-      width: 40,
-      height: Math.min(session.tags.length + 4, 15),
-      border: { type: 'line' },
-      style: {
-        border: { fg: '#00d4aa' },
-        selected: { bg: '#1a3a4a', fg: 'white' },
-        item: { fg: '#cccccc' },
-        label: { fg: '#00d4aa' },
-      },
-      keys: true,
-      vi: true,
-      items: session.tags,
-    });
-    popup.focus();
-    screen.render();
-
-    popup.on('select', (_item: unknown, index: number) => {
-      const tag = session.tags[index];
-      removeTags(session.id, [tag]);
-      session.tags = session.tags.filter((t) => t !== tag);
-      popup.destroy();
-      refreshPreview();
-      focusPane(activePane);
-    });
-    popup.key(['escape', 'q'], () => {
-      popup.destroy();
-      focusPane(activePane);
-    });
+      popup.on('select', (_item: unknown, index: number) => {
+        const tag = tagsSnapshot[index];
+        removeTags(session.id, [tag]);
+        session.tags = session.tags.filter((tg) => tg !== tag);
+        popup.destroy();
+        modalOpen = false;
+        refreshPreview();
+        focusPane(activePane);
+        screen.render();
+      });
+      popup.key(['escape', 'q'], () => {
+        popup.destroy();
+        modalOpen = false;
+        focusPane(activePane);
+        screen.render();
+      });
+    }
   });
 
   // Add to project
   screen.key('a', () => {
+    if (modalOpen) return;
     const session = filteredSessions[sessionIndex];
     if (!session) return;
+    modalOpen = true;
 
     const names = getProjectNames();
     const items = [
@@ -506,6 +542,7 @@ export function launchTui(opts: {
 
     popup.on('select', (_item: unknown, index: number) => {
       popup.destroy();
+      modalOpen = false;
       if (index === items.length - 1) {
         // New project
         showInput('New project name', (name) => {
@@ -522,6 +559,7 @@ export function launchTui(opts: {
     });
     popup.key(['escape', 'q'], () => {
       popup.destroy();
+      modalOpen = false;
       focusPane(activePane);
     });
   });
@@ -547,41 +585,49 @@ export function launchTui(opts: {
   });
 
   // Help
-  screen.key('?', () => {
+  screen.key(['?', 'S-/'], () => {
+    if (modalOpen) return;
+    modalOpen = true;
     const help = blessed.box({
       parent: screen,
       label: ' Keyboard Shortcuts ',
       top: 'center',
       left: 'center',
-      width: 50,
-      height: 22,
+      width: 62,
+      height: 24,
       border: { type: 'line' },
       style: { border: { fg: '#00d4aa' }, label: { fg: '#00d4aa' } },
       tags: true,
       content: [
         '',
         '  {#00d4aa-fg}NAVIGATE{/#00d4aa-fg}',
-        '  Tab / Shift+Tab    Switch pane',
+        '  Left / Right       Switch pane',
+        '  Tab / Shift+Tab    Switch pane (alt)',
         '  Up / Down          Move in list',
-        '  Enter              Select project / open session',
+        '  Enter              Select / open session',
         '',
         '  {#00d4aa-fg}SEARCH & SORT{/#00d4aa-fg}',
         '  /                  Search sessions',
         '  Esc                Clear search',
-        '  s                  Cycle sort: date/msgs/branch',
+        '  s                  Cycle sort',
         '',
         '  {#00d4aa-fg}ORGANIZE{/#00d4aa-fg}',
         '  t                  Add tags',
         '  T (Shift+t)        Remove a tag',
         '  a                  Add session to project',
         '  n                  Create new project',
-        '  r                  Remove from active project',
+        '  r                  Remove from project',
         '',
         '  {#00d4aa-fg}q{/#00d4aa-fg} quit    {#00d4aa-fg}?{/#00d4aa-fg} this help',
+        '',
+        '  {#555555-fg}Esc / q / Enter to close this{/#555555-fg}',
       ].join('\n'),
     });
-    screen.onceKey([], () => {
+    help.focus();
+    help.key(['escape', 'q', '?', 'enter', 'space'], () => {
       help.destroy();
+      modalOpen = false;
+      focusPane(activePane);
       screen.render();
     });
     screen.render();
