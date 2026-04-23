@@ -8,6 +8,14 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
+// Escape literal braces so blessed (with tags: true) doesn't parse
+// user-supplied text as malformed color/style tags. blessed treats `{open}`
+// and `{close}` as entities that render as `{` and `}`. Single pass so the
+// `}` we emit for `{open}` isn't re-escaped.
+export function escapeTags(str: string): string {
+  return str.replace(/[{}]/g, (c) => (c === '{' ? '{open}' : '{close}'));
+}
+
 export function formatDate(isoDate: string): string {
   return dayjs(isoDate).format('MMM D, YYYY h:mm A');
 }

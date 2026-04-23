@@ -23,6 +23,7 @@ import {
   formatRelativeDate,
   stripSystemTags,
   cleanSessionTitle,
+  escapeTags,
 } from '../utils/format.js';
 import {
   buildDemoSessions,
@@ -188,7 +189,9 @@ export function launchTui(opts: {
     const items = [
       activeProjectName === null ? '{#00d4aa-fg}> All{/#00d4aa-fg}' : '  All',
       ...names.map((n) =>
-        n === activeProjectName ? `{#00d4aa-fg}> ${n}{/#00d4aa-fg}` : `  ${n}`,
+        n === activeProjectName
+          ? `{#00d4aa-fg}> ${escapeTags(n)}{/#00d4aa-fg}`
+          : `  ${escapeTags(n)}`,
       ),
     ];
     projectPane.setItems(items);
@@ -265,14 +268,14 @@ export function launchTui(opts: {
     const title = cleanSessionTitle(session);
 
     let c = '';
-    c += `\n  {bold}{white-fg}${title}{/white-fg}{/bold}\n\n`;
-    c += `  {#00d4aa-fg}Branch:{/#00d4aa-fg}    {#5588cc-fg}${session.branch}{/#5588cc-fg}\n`;
+    c += `\n  {bold}{white-fg}${escapeTags(title)}{/white-fg}{/bold}\n\n`;
+    c += `  {#00d4aa-fg}Branch:{/#00d4aa-fg}    {#5588cc-fg}${escapeTags(session.branch)}{/#5588cc-fg}\n`;
     c += `  {#00d4aa-fg}Date:{/#00d4aa-fg}      {#888888-fg}${formatDate(session.created.toISOString())}{/#888888-fg}\n`;
     c += `  {#00d4aa-fg}Messages:{/#00d4aa-fg}  {white-fg}${session.messageCount}{/white-fg}\n`;
     c += `  {#00d4aa-fg}ID:{/#00d4aa-fg}        {#555555-fg}${session.id.slice(0, 8)}{/#555555-fg}\n`;
 
     if (session.tags.length > 0) {
-      c += `  {#00d4aa-fg}Tags:{/#00d4aa-fg}     ${session.tags.map((t) => `{#00d4aa-fg}#${t}{/#00d4aa-fg}`).join(' ')}\n`;
+      c += `  {#00d4aa-fg}Tags:{/#00d4aa-fg}     ${session.tags.map((t) => `{#00d4aa-fg}#${escapeTags(t)}{/#00d4aa-fg}`).join(' ')}\n`;
     }
 
     c += '\n  {#333333-fg}----------------------------------------{/#333333-fg}\n';
@@ -288,19 +291,19 @@ export function launchTui(opts: {
         if (!text) continue;
         c += `\n  {${color}-fg}{bold}${label}{/bold}{/${color}-fg}\n`;
         for (const line of truncate(text, 350).split('\n')) {
-          c += `  {#bbbbbb-fg}${line}{/#bbbbbb-fg}\n`;
+          c += `  {#bbbbbb-fg}${escapeTags(line)}{/#bbbbbb-fg}\n`;
         }
       }
     }
 
     previewPane.setContent(c);
-    previewPane.setLabel(` Preview -- ${truncate(title, 25)} `);
+    previewPane.setLabel(` Preview -- ${escapeTags(truncate(title, 25))} `);
     previewPane.scrollTo(0);
   }
 
   function updateStatusBar(): void {
-    const proj = activeProjectName ? `[${activeProjectName}]` : 'All';
-    const search = searchQuery ? `  {#ff9966-fg}search:"${searchQuery}" (esc to clear){/#ff9966-fg}` : '';
+    const proj = activeProjectName ? `[${escapeTags(activeProjectName)}]` : 'All';
+    const search = searchQuery ? `  {#ff9966-fg}search:"${escapeTags(searchQuery)}" (esc to clear){/#ff9966-fg}` : '';
     const demoTag = demoMode ? '{#ff9966-fg}[DEMO]{/#ff9966-fg}  ' : '';
     const k = (key: string, desc: string): string =>
       `{#00d4aa-fg}${key}{/#00d4aa-fg} ${desc}`;

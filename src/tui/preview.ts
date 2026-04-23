@@ -7,6 +7,7 @@ import {
   stripSystemTags,
   cleanSessionTitle,
   formatRelativeDate,
+  escapeTags,
 } from '../utils/format.js';
 
 export function createPreview(
@@ -49,15 +50,15 @@ export function updatePreview(
   let content = '';
 
   // Header
-  content += `\n  {bold}{white-fg}${title}{/white-fg}{/bold}\n\n`;
-  content += `  {#00d4aa-fg}Branch:{/#00d4aa-fg}    {#5588cc-fg}${session.branch}{/#5588cc-fg}\n`;
+  content += `\n  {bold}{white-fg}${escapeTags(title)}{/white-fg}{/bold}\n\n`;
+  content += `  {#00d4aa-fg}Branch:{/#00d4aa-fg}    {#5588cc-fg}${escapeTags(session.branch)}{/#5588cc-fg}\n`;
   content += `  {#00d4aa-fg}Date:{/#00d4aa-fg}      {#888888-fg}${formatDate(session.created.toISOString())}{/#888888-fg}\n`;
   content += `  {#00d4aa-fg}Messages:{/#00d4aa-fg}  {white-fg}${session.messageCount}{/white-fg}\n`;
   content += `  {#00d4aa-fg}ID:{/#00d4aa-fg}        {#555555-fg}${session.id.slice(0, 8)}{/#555555-fg}\n`;
 
   if (session.tags.length > 0) {
     const tagStr = session.tags
-      .map((t) => `{#00d4aa-fg}#${t}{/#00d4aa-fg}`)
+      .map((t) => `{#00d4aa-fg}#${escapeTags(t)}{/#00d4aa-fg}`)
       .join('  ');
     content += `  {#00d4aa-fg}Tags:{/#00d4aa-fg}     ${tagStr}\n`;
   }
@@ -84,12 +85,12 @@ export function updatePreview(
 
       const lines = display.split('\n');
       for (const line of lines) {
-        content += `  {#bbbbbb-fg}${line}{/#bbbbbb-fg}\n`;
+        content += `  {#bbbbbb-fg}${escapeTags(line)}{/#bbbbbb-fg}\n`;
       }
     }
   }
 
   box.setContent(content);
-  box.setLabel(` Preview -- ${truncate(title, 28)} `);
+  box.setLabel(` Preview -- ${escapeTags(truncate(title, 28))} `);
   box.scrollTo(0);
 }
