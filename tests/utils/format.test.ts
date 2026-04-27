@@ -5,6 +5,7 @@ import {
   formatRelativeDate,
   stripSystemTags,
   cleanMessageContent,
+  escapeTags,
 } from '../../src/utils/format.js';
 
 describe('truncate', () => {
@@ -72,5 +73,30 @@ describe('cleanMessageContent', () => {
   it('returns empty string for null/undefined', () => {
     expect(cleanMessageContent(null)).toBe('');
     expect(cleanMessageContent(undefined)).toBe('');
+  });
+});
+
+describe('escapeTags', () => {
+  it('replaces { with the {open} entity', () => {
+    expect(escapeTags('foo { bar')).toBe('foo {open} bar');
+  });
+
+  it('replaces } with the {close} entity', () => {
+    expect(escapeTags('foo } bar')).toBe('foo {close} bar');
+  });
+
+  it('escapes a blessed-looking color tag so it renders literally', () => {
+    expect(escapeTags('{#ff0000-fg}red{/#ff0000-fg}')).toBe(
+      '{open}#ff0000-fg{close}red{open}/#ff0000-fg{close}',
+    );
+  });
+
+  it('leaves text without braces unchanged', () => {
+    expect(escapeTags('hello world')).toBe('hello world');
+  });
+
+  it('handles JSON-like content that crashes blessed without escaping', () => {
+    const json = '{"key": "value"}';
+    expect(escapeTags(json)).toBe('{open}"key": "value"{close}');
   });
 });
